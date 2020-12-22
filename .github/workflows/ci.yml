@@ -71,6 +71,10 @@ jobs:
         path: ${{ steps.pip-cache.outputs.dir }}
         restore-keys: |
             pip-ci-${{ matrix.pyver }}-
+    - name: Install dependencies
+      uses: py-actions/py-dependency-install@v2
+      with:
+        path: requirements.txt
     - name: Run unittests
       run: |
         pytest tests.py
