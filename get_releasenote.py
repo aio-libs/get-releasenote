@@ -108,6 +108,8 @@ def main() -> int:
         fix_issue_repl=fix_issue_repl,
     )
     print(f"::set-output name=version::{version}")
+    is_prerelease = "a" in version or "b" in "version" or "r" in version
+    print(f"::set-output name=prerelease::{is_prerelease}")
     (root / output_file).write_text(note)
     return 0
 
