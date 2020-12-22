@@ -229,3 +229,37 @@ def test_parse_fix_issues() -> None:
 
       - Feature 1 (#4603)"""
     )
+
+
+def test_parse_with_name() -> None:
+    CHANGES = dedent(
+        f"""\
+      Header
+      {START_LINE}
+
+      Project 1.2.3 (2020-12-16)
+      ==========================
+
+      Features
+      --------
+
+      - Feature 1 (#1024)
+
+    """
+    )
+    ret = parse(
+        changes=CHANGES,
+        version="1.2.3",
+        name="Project",
+        start_line=START_LINE,
+        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        fix_issue_regex="",
+        fix_issue_repl="",
+    )
+    assert ret == dedent(
+        """\
+      Features
+      --------
+
+      - Feature 1 (#1024)"""
+    )
