@@ -86,6 +86,7 @@ def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
 
 def main() -> int:
     root = Path(os.environ["GITHUB_WORKSPACE"])
+    output_file = os.environ["INPUT_OUTPUT_FILE"]
     version = find_version(
         root,
         os.environ["INPUT_VERSION_FILE"],
@@ -106,7 +107,8 @@ def main() -> int:
         fix_issue_regex=fix_issue_regex,
         fix_issue_repl=fix_issue_repl,
     )
-    print(f"::set-output name=note::{note}")
+    print(f"::set-output name=version::{version}")
+    (root / output_file).write_text(note)
     return 0
 
 
