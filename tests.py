@@ -149,3 +149,83 @@ def test_parse_single_changes() -> None:
 
       - Feature 2 (#1025)"""
     )
+
+
+def test_parse_multi_changes() -> None:
+    CHANGES = dedent(
+        f"""\
+      Header
+      {START_LINE}
+
+      1.2.3 (2020-12-16)
+      ==================
+
+      Features
+      --------
+
+      - Feature 1 (#1024)
+
+      - Feature 2 (#1025)
+
+
+
+      1.2.2 (2020-12-15)
+      ==================
+
+      Bugfixes
+      --------
+    """
+    )
+    ret = parse(
+        changes=CHANGES,
+        version="1.2.3",
+        name="",
+        start_line=START_LINE,
+        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        fix_issue_regex="",
+        fix_issue_repl="",
+    )
+    assert ret == dedent(
+        """\
+      Features
+      --------
+
+      - Feature 1 (#1024)
+
+      - Feature 2 (#1025)"""
+    )
+
+
+def test_parse_fix_issues() -> None:
+    CHANGES = dedent(
+        f"""\
+      Header
+      {START_LINE}
+
+      1.2.3 (2020-12-16)
+      ==================
+
+      Features
+      --------
+
+      - Feature 1 `#4603 <https://github.com/aio-libs/aiohttp/issues/4603>`_
+    """
+    )
+    ret = parse(
+        changes=CHANGES,
+        version="1.2.3",
+        name="",
+        start_line=START_LINE,
+        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        fix_issue_regex=(
+            "\n?\\s*`#(\\d+) <https://github.com/aio-libs/aiohttp/issues/\\1>`_"
+        ),
+        fix_issue_repl=" (#\\1)",
+    )
+    assert ret == dedent(
+        """\
+      Features
+      --------
+
+      - Feature 1 (#4603)"""
+    )
