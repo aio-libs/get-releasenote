@@ -56,7 +56,7 @@ def parse(
 
     if fix_issue_regex:
         msg = re.sub(fix_issue_regex, fix_issue_repl, msg)
-    return msg
+    return msg.strip()
 
 
 def find_version(root: Path, version_file: str, version: str) -> str:
