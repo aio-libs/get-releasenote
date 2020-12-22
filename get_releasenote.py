@@ -12,7 +12,6 @@ def parse(
     *,
     changes: str,
     version: str,
-    name: str,
     start_line: str,
     head_line: str,
     fix_issue_regex: str,
@@ -23,15 +22,10 @@ def parse(
     top, sep, msg = changes.partition(start_line)
     if not sep:
         raise ValueError(f"Cannot find TOWNCRIER start mark ({start_line!r})")
-    msg = msg.strip()
-    if name:
-        name = re.escape(name) + r"\s+"
-    else:
-        name = ""
 
+    msg = msg.strip()
     head_re = re.compile(
         head_line.format(
-            name=name,
             version="(?P<version>[0-9][0-9.abcr]+)",
             date=r"\d+-\d+-\d+",
         ),
@@ -94,7 +88,6 @@ def main() -> int:
     )
     start_line = os.environ["INPUT_START_LINE"]
     head_line = os.environ["INPUT_HEAD_LINE"]
-    name = os.environ["INPUT_NAME"]
     fix_issue_regex = os.environ["INPUT_FIX_ISSUE_REGEX"]
     fix_issue_repl = os.environ["INPUT_FIX_ISSUE_REPL"]
     changes = root / os.environ["INPUT_CHANGES_FILE"]
@@ -103,13 +96,12 @@ def main() -> int:
         version=version,
         start_line=start_line,
         head_line=head_line,
-        name=name,
         fix_issue_regex=fix_issue_regex,
         fix_issue_repl=fix_issue_repl,
     )
     print(f"::set-output name=version::{version}")
     is_prerelease = "a" in version or "b" in "version" or "r" in version
-    print(f"::set-output name=prerelease::{is_prerelease}")
+    print(f"::set-output name=prerelease::{str(is_prerelease).lower()}")
     (root / output_file).write_text(note)
     return 0
 

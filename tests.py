@@ -64,9 +64,8 @@ def test_parse_no_start_line() -> None:
         parse(
             changes="text",
             version="1.2.3",
-            name="",
             start_line=START_LINE,
-            head_line="{name}{version} \\({date}\\)\n=====+\n?",
+            head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
         )
@@ -83,9 +82,8 @@ def test_parse_no_head_line() -> None:
         parse(
             changes=CHANGES,
             version="1.2.3",
-            name="",
             start_line=START_LINE,
-            head_line="{name}{version} \\({date}\\)\n=====+\n?",
+            head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
         )
@@ -105,9 +103,8 @@ def test_parse_version_mismatch() -> None:
         parse(
             changes=CHANGES,
             version="1.2.3",
-            name="",
             start_line=START_LINE,
-            head_line="{name}{version} \\({date}\\)\n=====+\n?",
+            head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
         )
@@ -134,9 +131,8 @@ def test_parse_single_changes() -> None:
     ret = parse(
         changes=CHANGES,
         version="1.2.3",
-        name="",
         start_line=START_LINE,
-        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        head_line="{version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
     )
@@ -179,9 +175,8 @@ def test_parse_multi_changes() -> None:
     ret = parse(
         changes=CHANGES,
         version="1.2.3",
-        name="",
         start_line=START_LINE,
-        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        head_line="{version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
     )
@@ -214,9 +209,8 @@ def test_parse_fix_issues() -> None:
     ret = parse(
         changes=CHANGES,
         version="1.2.3",
-        name="",
         start_line=START_LINE,
-        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        head_line="{version} \\({date}\\)\n=====+\n?",
         fix_issue_regex=(
             "\n?\\s*`#(\\d+) <https://github.com/aio-libs/aiohttp/issues/\\1>`_"
         ),
@@ -250,9 +244,8 @@ def test_parse_with_name() -> None:
     ret = parse(
         changes=CHANGES,
         version="1.2.3",
-        name="Project",
         start_line=START_LINE,
-        head_line="{name}{version} \\({date}\\)\n=====+\n?",
+        head_line="Project {version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
     )

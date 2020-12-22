@@ -1,4 +1,3 @@
----
 name: get-releasenote
 description: GitHub action for getting release note from towncrier rendered file.
 inputs:
@@ -24,10 +23,6 @@ inputs:
     description: Regular expression for head line
     required: false
     default: "{name}{version}\\s+\\({date}\\)\n====+\n?"
-  name:
-    description: The project name, empty if the name is skipped in CHANGES
-    required: false
-    default: ''
   fix_issue_regex:
     description: Regexp for issue record replacement
     required: false
@@ -36,6 +31,11 @@ inputs:
     description: Replacement rule for regexps found by fix_issue_regex
     required: false
     default: ''
+outputs:
+  version:
+    description: Used version number
+  prerelease:
+    description: true is the version points to pre-release, false otherwise
 branding:
   color: yellow
   icon: upload
