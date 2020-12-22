@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
-COPY LICENSE.rst .
+COPY LICENSE .
 COPY get_releasenote.py .
 
 RUN chmod +x get_releasenote.py

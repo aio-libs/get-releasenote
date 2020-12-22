@@ -1,33 +1,47 @@
 #!/usr/bin/env python
 
-import argparse
+import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Optional
+
+__version__ = "1.0.0"
 
 
 def parse(
+    *,
     changes: str,
     version: str,
-    *,
-    name: Optional[str] = None,
-    start_line: str = ".. towncrier release notes start",
-    head_line: str = r"{name}(?P<version>[0-9][0-9.abcr]+)\s+\(\d+-\d+-\d+\)\n====+\n",
-    fix_issue: str = "",
+    name: str,
+    start_line: str,
+    head_line: str,
+    fix_issue_regex: str,
+    fix_issue_repl: str,
 ) -> str:
+    check_fix_issue(fix_issue_regex, fix_issue_repl)
+
     top, sep, msg = changes.partition(start_line)
     if not sep:
-        raise ValueError(f"Cannot find TOWNCRIER start mark ({start_line!a})")
+        raise ValueError(f"Cannot find TOWNCRIER start mark ({start_line!r})")
     msg = msg.strip()
     if name:
         name = re.escape(name) + r"\s+"
     else:
         name = ""
-    head_re = re.compile(head_line.format(name=name))
+
+    head_re = re.compile(
+        head_line.format(
+            name=name,
+            version="(?P<version>[0-9][0-9.abcr]+)",
+            date=r"\d+-\d+-\d+",
+        ),
+        re.MULTILINE,
+    )
     match = head_re.match(msg)
     if match is None:
-        raise ValueError(f"Cannot find TOWNCRIER version head mark ({head_re!a})")
+        raise ValueError(
+            f"Cannot find TOWNCRIER version head mark ({head_re.pattern!r})"
+        )
     found_version = match.group("version")
     if version != found_version:
         raise ValueError(f"Version check mismatch: {version} != {found_version}")
@@ -40,43 +54,61 @@ def parse(
         # There is the only release record
         msg = msg[match.end() :]
 
-    if fix_issue:
-        patt, repl = fix_issue
-        msg = re.sub(patt, repl, msg)
+    if fix_issue_regex:
+        msg = re.sub(fix_issue_regex, fix_issue_repl, msg)
     return msg
 
 
-def read_version(fname: Path) -> str:
+def find_version(root: Path, version_file: str, version: str) -> str:
+    if version:
+        if version_file:
+            raise ValueError("version and version_file arguments are ambiguous")
+        return version
+    fname = root / version_file
     txt = fname.read_text("utf-8")
-    try:
-        return re.findall(r'^__version__ = "([^"]+)"\r?$', txt, re.M)[0]
-    except IndexError:
-        raise RuntimeError("Unable to determine version.")
+    match = re.search(
+        r"""
+          __version__\s*=\s*"([^"]+)"|
+          __version__\s*=\s*'([^']+)'
+        """,
+        txt,
+        re.VERBOSE,
+    )
+    if not match:
+        raise ValueError(f"Unable to determine version in {fname}")
+    return match.group(1)
 
 
-def main(argv: List[str]) -> int:
-    root = Path(__file__).parent.parent
-    parser = argparse.ArgumentParser(description="Release notes extractor")
-    parser.add_argument(
-        "--version", help="Checked version (fetched from aiohttp/__init__.py by default"
+def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
+    if fix_issue_regex and not fix_issue_repl or not fix_issue_regex and fix_issue_repl:
+        raise ValueError("fix_issue_regex and fix_issue_repl should be used together")
+
+
+def main() -> int:
+    root = Path(os.environ["GITHUB_WORKSPACE"])
+    version = find_version(
+        root,
+        os.environ["INPUT_VERSION_FILE"],
+        os.environ["INPUT_VERSION"],
     )
-    args = parser.parse_args(argv)
-    version = args.version
-    if version is None:
-        version = read_version(root / "aiohttp" / "__init__.py")
-    changes = root / "CHANGES.rst"
-    print(
-        parse(
-            changes.read_text("utf-8"),
-            version,
-            fix_issue=(
-                r"\n?\s*`#(\d+) <https://github.com/aio-libs/aiohttp/issues/\1>`_",
-                r" (#\1)",
-            ),
-        )
+    start_line = os.environ["INPUT_START_LINE"]
+    head_line = os.environ["INPUT_HEAD_LINE"]
+    name = os.environ["INPUT_NAME"]
+    fix_issue_regex = os.environ["INPUT_FIX_ISSUE_REGEX"]
+    fix_issue_repl = os.environ["INPUT_FIX_ISSUE_REPL"]
+    changes = root / os.environ["INPUT_CHANGES_FILE"]
+    note = parse(
+        changes=changes.read_text("utf-8"),
+        version=version,
+        start_line=start_line,
+        head_line=head_line,
+        name=name,
+        fix_issue_regex=fix_issue_regex,
+        fix_issue_repl=fix_issue_repl,
     )
+    print(f"::set-output name=note::{note}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
