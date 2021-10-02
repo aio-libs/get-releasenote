@@ -8,7 +8,7 @@ from typing import Tuple
 
 from distlib.wheel import Wheel
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 
 def parse(
