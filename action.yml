@@ -51,4 +51,4 @@ branding:
   icon: upload
 runs:
   using: docker
-  image: Dockerfile
+  image: ghcr.io/aio-libs/get-releasenotes:1.1.3
