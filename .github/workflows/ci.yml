@@ -101,7 +101,7 @@ jobs:
         VERSION="${GITHUB_REF#refs/tags/v}"
         TEST="image: ghcr.io/aio-libs/get-releasenotes:${VERSION}"
         FOUND=$(grep -F "$TEST" action.yml)
-        if [[ ! -z $FOUND ]]; then
+        if [[ -z $FOUND ]]; then
           echo "::error::Image tag in action.yml mismatches with github tag"
           exit 1
         fi
