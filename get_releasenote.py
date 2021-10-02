@@ -4,8 +4,11 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Tuple
 
-__version__ = "1.0.0"
+from distlib.wheel import Wheel
+
+__version__ = "1.1.0"
 
 
 def parse(
@@ -53,7 +56,37 @@ def parse(
     return msg.strip()
 
 
-def find_version(root: Path, version_file: str, version: str) -> str:
+def analyze_wheels(dist_dir: Path, check_name: str) -> Tuple[str, str]:
+    names = set()
+    versions = set()
+    for fname in dist_dir.glob("*.whl"):
+        wheel = Wheel(str(fname))
+        names.add(wheel.name)
+        versions.add(wheel.version)
+    if not names:
+        raise ValueError(f"No wheels are found in {dist_dir}")
+    if len(names) != 1:
+        raise ValueError(f"Multiple distributions are found: {','.join(names)}")
+    name = list(names)[0]
+    if check_name and name != check_name:
+        raise ValueError(
+            f"name argument conflicts with autodected: {check_name} != {name}"
+        )
+    version = list(versions)[0]
+    return name, version
+
+
+def find_version(
+    root: Path, version_file: str, version: str, name: str, dist_dir: str
+) -> Tuple[str, str]:
+    if not version and not version_file:
+        if not dist_dir:
+            raise ValueError("dist_dir is required for name and version autodetection")
+        return analyze_wheels(root / dist_dir, name)
+    if not name:
+        raise ValueError(
+            "name argument should be explicitly passes in non-autodetect mode"
+        )
     if version:
         if version_file:
             raise ValueError("version and version_file arguments are ambiguous")
@@ -70,7 +103,7 @@ def find_version(root: Path, version_file: str, version: str) -> str:
     )
     if not match:
         raise ValueError(f"Unable to determine version in {fname}")
-    return match.group(1)
+    return name, match.group(1)
 
 
 def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
@@ -81,10 +114,12 @@ def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
 def main() -> int:
     root = Path(os.environ["GITHUB_WORKSPACE"])
     output_file = os.environ["INPUT_OUTPUT_FILE"]
-    version = find_version(
+    name, version = find_version(
         root,
         os.environ["INPUT_VERSION_FILE"],
         os.environ["INPUT_VERSION"],
+        os.environ["INPUT_NAME"],
+        os.environ["INPUT_DIST_DIR"],
     )
     start_line = os.environ["INPUT_START_LINE"]
     head_line = os.environ["INPUT_HEAD_LINE"]
@@ -100,6 +135,7 @@ def main() -> int:
         fix_issue_repl=fix_issue_repl,
     )
     print(f"::set-output name=version::{version}")
+    print(f"::set-output name=name::{name}")
     is_prerelease = "a" in version or "b" in "version" or "r" in version
     print(f"::set-output name=prerelease::{str(is_prerelease).lower()}")
     (root / output_file).write_text(note)

@@ -15,6 +15,14 @@ inputs:
     description: Path to file containing __version__ string
     required: false
     default: ''
+  name:
+    description: Distribution name
+    required: false
+    default: ''
+  dist_dir:
+    description: Path to a directory with wheels for name and version autodetection
+    required: false
+    default: ''
   start_line:
     description: The marker for towncrier start point
     required: false
@@ -34,6 +42,8 @@ inputs:
 outputs:
   version:
     description: Used version number
+  name:
+    description: The distribution name
   prerelease:
     description: true is the version points to pre-release, false otherwise
 branding:
