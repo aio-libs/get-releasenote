@@ -8,7 +8,7 @@ from typing import Tuple
 
 from distlib.wheel import Wheel
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 
 def parse(
@@ -90,7 +90,7 @@ def find_version(
     if version:
         if version_file:
             raise ValueError("version and version_file arguments are ambiguous")
-        return version
+        return name, version
     fname = root / version_file
     txt = fname.read_text("utf-8")
     match = re.search(

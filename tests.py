@@ -40,20 +40,22 @@ def test_check_fix_issue_fail2() -> None:
 
 def test_find_version_ambigous(root: pathlib.Path) -> None:
     with pytest.raises(ValueError, match="ambiguous"):
-        find_version(root, "get_releasenote.py", "1.2.3")
+        find_version(root, "get_releasenote.py", "1.2.3", "name", "")
 
 
 def test_find_version_explicit(root: pathlib.Path) -> None:
-    assert "1.2.3" == find_version(root, "", "1.2.3")
+    assert ("name", "1.2.3") == find_version(root, "", "1.2.3", "name", "")
 
 
 def test_find_version_from_file(root: pathlib.Path) -> None:
-    assert __version__ == find_version(root, "get_releasenote.py", "")
+    assert ("name", __version__) == find_version(
+        root, "get_releasenote.py", "", "name", ""
+    )
 
 
 def test_find_version_not_found(root: pathlib.Path) -> None:
     with pytest.raises(ValueError, match="Unable to determine version"):
-        find_version(root, "tests.py", "")
+        find_version(root, "tests.py", "", "name", "")
 
 
 ##################
