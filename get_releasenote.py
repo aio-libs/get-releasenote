@@ -93,7 +93,7 @@ def main() -> int:
     fix_issue_regex = os.environ["INPUT_FIX_ISSUE_REGEX"]
     fix_issue_repl = os.environ["INPUT_FIX_ISSUE_REPL"]
     changes = root / os.environ["INPUT_CHANGES_FILE"]
-    name = os.environ["INPUT_FIX_NAME"]
+    name = os.environ["INPUT_NAME"]
     note = parse(
         changes=changes.read_text("utf-8"),
         version=version,
