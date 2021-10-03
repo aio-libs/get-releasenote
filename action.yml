@@ -7,20 +7,16 @@ inputs:
   output_file:
     description: Where to write the output
     required: true
+  name:
+    description: Package name as presented in CHANGES file.
+    required: false
+    default: ''
   version:
     description: Release version to extract
     required: false
     default: ''
   version_file:
     description: Path to file containing __version__ string
-    required: false
-    default: ''
-  name:
-    description: Distribution name
-    required: false
-    default: ''
-  dist_dir:
-    description: Path to a directory with wheels for name and version autodetection
     required: false
     default: ''
   start_line:
@@ -30,7 +26,7 @@ inputs:
   head_line:
     description: Regular expression for head line
     required: false
-    default: "{name}{version}\\s+\\({date}\\)\n====+\n?"
+    default: "{name} {version}\\s+\\({date}\\)\n====+\n?"
   fix_issue_regex:
     description: Regexp for issue record replacement
     required: false
@@ -42,13 +38,25 @@ inputs:
 outputs:
   version:
     description: Used version number
-  name:
-    description: The distribution name
   prerelease:
     description: true is the version points to pre-release, false otherwise
 branding:
   color: yellow
   icon: upload
 runs:
-  using: docker
-  image: docker://ghcr.io/aio-libs/get-releasenotes:1.1.3
+  using: composite
+  steps:
+  - name: Run
+    run: ${{ github.action_path }}/get-releasenote.py
+    shell: bash
+    env:
+      GITHUB_WORKSPACE: ${{ github.workspace }}
+      CHANGES_OUTPUT_FILE:  ${{ inputs.changes_file }}
+      INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
+      INPUT_NAME:  ${{ inputs.name }}
+      INPUT_VERSION:  ${{ inputs.version }}
+      INPUT_VERSION_FILE:  ${{ inputs.version_file }}
+      INPUT_START_LINE:  ${{ inputs.start_line }}
+      INPUT_HEAD_LINE:  ${{ inputs.head_line }}
+      INPUT_FIX_ISSUE_REGEX:  ${{ inputs.fix_issue_regex }}
+      INPUT_FIX_ISSUE_REPL:  ${{ inputs.fix_issue_repl }}

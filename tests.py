@@ -40,22 +40,20 @@ def test_check_fix_issue_fail2() -> None:
 
 def test_find_version_ambigous(root: pathlib.Path) -> None:
     with pytest.raises(ValueError, match="ambiguous"):
-        find_version(root, "get_releasenote.py", "1.2.3", "name", "")
+        find_version(root, "get_releasenote.py", "1.2.3")
 
 
 def test_find_version_explicit(root: pathlib.Path) -> None:
-    assert ("name", "1.2.3") == find_version(root, "", "1.2.3", "name", "")
+    assert "1.2.3" == find_version(root, "", "1.2.3")
 
 
 def test_find_version_from_file(root: pathlib.Path) -> None:
-    assert ("name", __version__) == find_version(
-        root, "get_releasenote.py", "", "name", ""
-    )
+    assert __version__ == find_version(root, "get_releasenote.py", "")
 
 
 def test_find_version_not_found(root: pathlib.Path) -> None:
     with pytest.raises(ValueError, match="Unable to determine version"):
-        find_version(root, "tests.py", "", "name", "")
+        find_version(root, "tests.py", "")
 
 
 ##################
@@ -70,6 +68,7 @@ def test_parse_no_start_line() -> None:
             head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
+            name="name",
         )
 
 
@@ -88,6 +87,7 @@ def test_parse_no_head_line() -> None:
             head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
+            name="name",
         )
 
 
@@ -109,6 +109,7 @@ def test_parse_version_mismatch() -> None:
             head_line="{version} \\({date}\\)\n=====+\n?",
             fix_issue_regex="",
             fix_issue_repl="",
+            name="name",
         )
 
 
@@ -137,6 +138,7 @@ def test_parse_single_changes() -> None:
         head_line="{version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
+        name="name",
     )
     assert ret == dedent(
         """\
@@ -181,6 +183,7 @@ def test_parse_multi_changes() -> None:
         head_line="{version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
+        name="name",
     )
     assert ret == dedent(
         """\
@@ -217,6 +220,7 @@ def test_parse_fix_issues() -> None:
             "\n?\\s*`#(\\d+) <https://github.com/aio-libs/aiohttp/issues/\\1>`_"
         ),
         fix_issue_repl=" (#\\1)",
+        name="name",
     )
     assert ret == dedent(
         """\
@@ -250,6 +254,7 @@ def test_parse_with_name() -> None:
         head_line="Project {version} \\({date}\\)\n=====+\n?",
         fix_issue_regex="",
         fix_issue_repl="",
+        name="name",
     )
     assert ret == dedent(
         """\
