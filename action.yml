@@ -51,7 +51,7 @@ runs:
     shell: bash
     env:
       GITHUB_WORKSPACE: ${{ github.workspace }}
-      CHANGES_OUTPUT_FILE:  ${{ inputs.changes_file }}
+      INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
       INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
       INPUT_NAME:  ${{ inputs.name }}
       INPUT_VERSION:  ${{ inputs.version }}
