@@ -47,7 +47,7 @@ runs:
   using: composite
   steps:
   - name: Run
-    run: ${{ github.action_path }}/get-releasenote.py
+    run: ${{ github.action_path }}/get_releasenote.py
     shell: bash
     env:
       GITHUB_WORKSPACE: ${{ github.workspace }}
