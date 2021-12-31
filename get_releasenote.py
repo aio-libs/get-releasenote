@@ -27,7 +27,7 @@ def parse(
     msg = msg.strip()
     head_re = re.compile(
         head_line.format(
-            version="(?P<version>[0-9][0-9.abcr]+(.post[0-9]+)?)",
+            version="(?P<version>[0-9][0-9.abcr]+(\.post[0-9]+)?)",
             date=r"\d+-\d+-\d+",
             name=name,
         ),
