@@ -7,6 +7,10 @@ inputs:
   output_file:
     description: Where to write the output
     required: true
+  dist_dir:
+    description: Path to folder with distributions
+    required: false
+    default: 'dist'
   name:
     description: Package name as presented in CHANGES file.
     required: false
@@ -40,6 +44,10 @@ outputs:
     description: Used version number
   prerelease:
     description: true is the version points to pre-release, false otherwise
+  devrelease:
+    description: true is the version points to dev-release, false otherwise
+  gittags:
+    description: Possible git tags, comma separated lists. '{version},v{version}'
 branding:
   color: yellow
   icon: upload
@@ -51,6 +59,7 @@ runs:
     shell: bash
     env:
       GITHUB_WORKSPACE: ${{ github.workspace }}
+      INPUT_DIST_DIR:  ${{ inputs.dist_dir }}
       INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
       INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
       INPUT_NAME:  ${{ inputs.name }}

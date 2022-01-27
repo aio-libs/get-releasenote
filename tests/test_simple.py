@@ -3,7 +3,14 @@ from textwrap import dedent
 
 import pytest
 
-from get_releasenote import __version__, check_fix_issue, find_version, parse
+from get_releasenote import (
+    Context,
+    DistInfo,
+    analyze_dists,
+    check_fix_issue,
+    find_version,
+    parse_changes,
+)
 
 
 @pytest.fixture
@@ -38,22 +45,70 @@ def test_check_fix_issue_fail2() -> None:
 ##################
 
 
-def test_find_version_ambigous(root: pathlib.Path) -> None:
+@pytest.fixture
+def dist(root: pathlib.Path) -> DistInfo:
+    return analyze_dists(root, "dist_ok")
+
+
+@pytest.fixture
+def ctx(tmp_path: pathlib.Path, dist: DistInfo) -> Context:
+    return Context(tmp_path, dist)
+
+
+def test_find_version_autodetected(ctx: Context) -> None:
+    assert "0.0.7" == find_version(ctx, "", "")
+
+
+def test_find_version_ambigous(ctx: Context) -> None:
     with pytest.raises(ValueError, match="ambiguous"):
-        find_version(root, "get_releasenote.py", "1.2.3")
+        (ctx.root / "file.py").write_text("__version__='1.2.3'")
+        find_version(ctx, "file.py", "3.4.5")
 
 
-def test_find_version_explicit(root: pathlib.Path) -> None:
-    assert "1.2.3" == find_version(root, "", "1.2.3")
+def test_find_version_mismatch_with_autodetected(ctx: Context) -> None:
+    with pytest.raises(ValueError, match="mismatches with autodetected "):
+        find_version(ctx, "", "1.2.3")
 
 
-def test_find_version_from_file(root: pathlib.Path) -> None:
-    assert __version__ == find_version(root, "get_releasenote.py", "")
+def test_find_version_explicit(ctx: Context) -> None:
+    assert "0.0.7" == find_version(ctx, "", "0.0.7")
 
 
-def test_find_version_not_found(root: pathlib.Path) -> None:
+def test_find_version_file_mismatch_with_autodetected(ctx: Context) -> None:
+    with pytest.raises(ValueError, match="mismatches with autodetected "):
+        (ctx.root / "file.py").write_text("__version__='1.2.3'")
+        find_version(ctx, "file.py", "")
+
+
+def test_find___version___no_spaces(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text("__version__='0.0.7'")
+    assert "0.0.7" == find_version(ctx, "file.py", "")
+
+
+def test_find___version___from_file_single_quotes(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text("__version__ = '0.0.7'")
+    assert "0.0.7" == find_version(ctx, "file.py", "")
+
+
+def test_find___version___from_file_double_quotes(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text('__version__ = "0.0.7"')
+    assert "0.0.7" == find_version(ctx, "file.py", "")
+
+
+def test_find_version_from_file_single_quotes(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text("version = '0.0.7'")
+    assert "0.0.7" == find_version(ctx, "file.py", "")
+
+
+def test_find_version_from_file_double_quotes(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text('version = "0.0.7"')
+    assert "0.0.7" == find_version(ctx, "file.py", "")
+
+
+def test_find_version_not_found(ctx: Context) -> None:
+    (ctx.root / "file.py").write_text("not_a_version = '0.0.7'")
     with pytest.raises(ValueError, match="Unable to determine version"):
-        find_version(root, "tests.py", "")
+        find_version(ctx, "file.py", "")
 
 
 ##################
@@ -61,7 +116,7 @@ def test_find_version_not_found(root: pathlib.Path) -> None:
 
 def test_parse_no_start_line() -> None:
     with pytest.raises(ValueError, match="Cannot find TOWNCRIER start mark"):
-        parse(
+        parse_changes(
             changes="text",
             version="1.2.3",
             start_line=START_LINE,
@@ -80,7 +135,7 @@ def test_parse_no_head_line() -> None:
     """
     )
     with pytest.raises(ValueError, match="Cannot find TOWNCRIER version head mark"):
-        parse(
+        parse_changes(
             changes=CHANGES,
             version="1.2.3",
             start_line=START_LINE,
@@ -102,7 +157,7 @@ def test_parse_version_mismatch() -> None:
     """
     )
     with pytest.raises(ValueError, match="Version check mismatch"):
-        parse(
+        parse_changes(
             changes=CHANGES,
             version="1.2.3",
             start_line=START_LINE,
@@ -131,7 +186,7 @@ def test_parse_single_changes() -> None:
 
     """
     )
-    ret = parse(
+    ret = parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -176,7 +231,7 @@ def test_parse_multi_changes() -> None:
       --------
     """
     )
-    ret = parse(
+    ret = parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -211,7 +266,7 @@ def test_parse_fix_issues() -> None:
       - Feature 1 `#4603 <https://github.com/aio-libs/aiohttp/issues/4603>`_
     """
     )
-    ret = parse(
+    ret = parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -247,7 +302,7 @@ def test_parse_with_name() -> None:
 
     """
     )
-    ret = parse(
+    ret = parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
