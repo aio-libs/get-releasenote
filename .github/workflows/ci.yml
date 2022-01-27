@@ -86,7 +86,7 @@ jobs:
   check:  # This job does nothing and is only used for the branch protection
     if: always()
     name: "Tests check"
-    needs: [list, test]
+    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
     - name: Decide whether the needed jobs succeeded or failed
