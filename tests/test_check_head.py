@@ -18,7 +18,7 @@ def test_check_head_not_a_tag():
         check_head("1.2.3", "refs/heads/master")
 
 
-def test_check_head_version_mismatches():
+def test_check_head_versions_mismatch():
     with pytest.raises(
         ValueError, match="Git tag 'v2.3.4' mismatches with version '1.2.3"
     ):
