@@ -35,7 +35,7 @@ jobs:
         restore-keys: |
             pip-lint-
     - name: Install dependencies
-      uses: py-actions/py-dependency-install@v2
+      uses: py-actions/py-dependency-install@v3
       with:
         path: requirements.txt
     - name: Pre-Commit hooks
@@ -67,7 +67,7 @@ jobs:
         restore-keys: |
             pip-ci-${{ matrix.pyver }}-
     - name: Install dependencies
-      uses: py-actions/py-dependency-install@v2
+      uses: py-actions/py-dependency-install@v3
       with:
         path: requirements.txt
     - name: Install Itself
