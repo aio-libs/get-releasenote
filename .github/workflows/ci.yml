@@ -71,6 +71,9 @@ jobs:
       uses: py-actions/py-dependency-install@v2
       with:
         path: requirements.txt
+    - name: Install Itself
+      run: |
+        pip install -e .
     - name: Run unittests
       run: |
         pytest tests.py
@@ -79,5 +82,4 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         file: ./coverage.xml
-        flags: unit
         fail_ci_if_error: false
