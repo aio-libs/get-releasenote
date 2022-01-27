@@ -1,14 +1,71 @@
 #!/usr/bin/env python3
 
+import dataclasses
 import os
 import re
+import shutil
 import sys
+import tempfile
 from pathlib import Path
+from typing import Optional
 
-__version__ = "1.2.2"
+from packaging.utils import parse_sdist_filename, parse_wheel_filename
+from packaging.version import parse as parse_version
 
 
-def parse(
+@dataclasses.dataclass
+class DistInfo:
+    version: str
+    name: str
+    tarball_path: Path
+
+
+@dataclasses.dataclass
+class Context:
+    root: Path
+    dist: Optional[DistInfo]
+    version: str = ""
+
+    def read_file(self, name: str) -> str:
+        fname = self.root / name
+        if not fname.exists():
+            if self.dist is not None:
+                fname = self.dist.tarball_path / name
+        if not fname.exists():
+            raise ValueError(f"file '{name}' doesn't exist")
+        return fname.read_text("utf-8")
+
+
+def analyze_dists(root: Path, dist_dir: str) -> Optional[DistInfo]:
+    if not dist_dir:
+        return None
+    name = None
+    version = None
+    tarball_path = None
+    dists = root / dist_dir
+    for dist in dists.iterdir():
+        if ".tar" in dist.suffixes:
+            tmp_path = Path(tempfile.mkdtemp(suffix="tarfile"))
+            shutil.unpack_archive(dist, tmp_path)
+            tarball_path = tmp_path / dist.name
+            # drop '.tar.gz' suffix
+            tarball_path = tarball_path.with_suffix("").with_suffix("")
+            assert tarball_path.is_dir()
+            nam, ver = parse_sdist_filename(dist.name)
+        else:
+            nam, ver, build, tags = parse_wheel_filename(dist.name)
+        if name is not None:
+            assert name == nam, f"{nam} != {name} for {dist}"
+        else:
+            name = nam
+        if version is not None:
+            assert version == ver, f"{ver} != {version} for {dist}"
+        else:
+            version = ver
+    return DistInfo(str(version), name, tarball_path)
+
+
+def parse_changes(
     *,
     changes: str,
     version: str,
@@ -55,26 +112,39 @@ def parse(
     return msg.strip()
 
 
-def find_version(root: Path, version_file: str, version: str) -> str:
+VERSION_RE = re.compile(
+    "^{version} *= *{spec}".format(
+        version="(?:__version__|version)",
+        spec=r"""(['"])([^\1]+)\1""",
+    )
+)
+
+
+def find_version(ctx: Context, version_file: str, version: str) -> str:
+    if not version and not version_file:
+        if not ctx.dist:
+            raise ValueError("No one of 'dist', 'version', 'version_file' is set")
+        return ctx.dist.version
     if version:
         if version_file:
             raise ValueError("version and version_file arguments are ambiguous")
+        if ctx.dist and version != ctx.dist.version:
+            raise ValueError(
+                f"version {version} mismatches " f"with autodetected {ctx.dist.version}"
+            )
         return version
-    fname = root / version_file
-    txt = fname.read_text("utf-8")
-    match = re.search(
-        r"""
-          __version__\s*=\s*"([^"]+)"|
-          __version__\s*=\s*'([^']+)'|
-          version\s*=\s*"([^"]+)"|
-          version\s*=\s*'([^']+)'
-        """,
-        txt,
-        re.VERBOSE,
-    )
-    if not match:
-        raise ValueError(f"Unable to determine version in {fname}")
-    return match.group(1)
+    txt = ctx.read_file(version_file)
+    match = VERSION_RE.match(txt)
+    if match:
+        ret = match.group(2)
+        if ctx.dist and ret != ctx.dist.version:
+            raise ValueError(
+                f"version {ret} from file {version_file} "
+                f"mismatches with autodetected {ctx.dist.version}"
+            )
+        return ret
+    else:
+        raise ValueError(f"Unable to determine version in file '{version_file}'")
 
 
 def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
@@ -82,11 +152,24 @@ def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
         raise ValueError("fix_issue_regex and fix_issue_repl should be used together")
 
 
+def check_head(version: str, head: Optional[str]) -> None:
+    if not head:
+        return
+    PRE = "refs/tags/"
+    if not head.startswith(PRE):
+        raise ValueError(f"Git head '{head}' doesn't point at a tag")
+    tag = head[len(PRE) :]
+    if tag != version and tag != "v" + version:
+        raise ValueError(f"Git tag '{tag}' mismatches with version '{version}'")
+
+
 def main() -> int:
     root = Path(os.environ["GITHUB_WORKSPACE"])
     output_file = os.environ["INPUT_OUTPUT_FILE"]
-    version = find_version(
-        root,
+    info = analyze_dists(root, os.environ["INPUT_DIST_DIR"])
+    ctx = Context(root, info)
+    ctx.version = find_version(
+        ctx,
         os.environ["INPUT_VERSION_FILE"],
         os.environ["INPUT_VERSION"],
     )
@@ -94,20 +177,23 @@ def main() -> int:
     head_line = os.environ["INPUT_HEAD_LINE"]
     fix_issue_regex = os.environ["INPUT_FIX_ISSUE_REGEX"]
     fix_issue_repl = os.environ["INPUT_FIX_ISSUE_REPL"]
-    changes = root / os.environ["INPUT_CHANGES_FILE"]
     name = os.environ["INPUT_NAME"]
-    note = parse(
-        changes=changes.read_text("utf-8"),
-        version=version,
+    note = parse_changes(
+        changes=ctx.read_file(os.environ["INPUT_CHANGES_FILE"]),
+        version=ctx.version,
         start_line=start_line,
         head_line=head_line,
         fix_issue_regex=fix_issue_regex,
         fix_issue_repl=fix_issue_repl,
         name=name,
     )
-    print(f"::set-output name=version::{version}")
-    is_prerelease = "a" in version or "b" in "version" or "r" in version
+    version = parse_version(ctx.version)
+    check_head(ctx.version, os.environ["INPUT_CHECK_REF"])
+    print(f"::set-output name=version::{ctx.version}")
+    is_prerelease = version.is_prerelease
     print(f"::set-output name=prerelease::{str(is_prerelease).lower()}")
+    is_devrelease = version.is_devrelease
+    print(f"::set-output name=devrelease::{str(is_devrelease).lower()}")
     (root / output_file).write_text(note)
     return 0
 

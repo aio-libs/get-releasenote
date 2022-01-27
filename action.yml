@@ -7,6 +7,14 @@ inputs:
   output_file:
     description: Where to write the output
     required: true
+  dist_dir:
+    description: Path to folder with distributions
+    required: false
+    default: 'dist'
+  check_ref:
+    description: Perform git tag check to match provided version
+    required: false
+    default: ''
   name:
     description: Package name as presented in CHANGES file.
     required: false
@@ -40,23 +48,23 @@ outputs:
     description: Used version number
   prerelease:
     description: true is the version points to pre-release, false otherwise
+  devrelease:
+    description: true is the version points to dev-release, false otherwise
 branding:
   color: yellow
   icon: upload
 runs:
-  using: composite
-  steps:
-  - name: Run
-    run: ${{ github.action_path }}/get_releasenote.py
-    shell: bash
-    env:
-      GITHUB_WORKSPACE: ${{ github.workspace }}
-      INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
-      INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
-      INPUT_NAME:  ${{ inputs.name }}
-      INPUT_VERSION:  ${{ inputs.version }}
-      INPUT_VERSION_FILE:  ${{ inputs.version_file }}
-      INPUT_START_LINE:  ${{ inputs.start_line }}
-      INPUT_HEAD_LINE:  ${{ inputs.head_line }}
-      INPUT_FIX_ISSUE_REGEX:  ${{ inputs.fix_issue_regex }}
-      INPUT_FIX_ISSUE_REPL:  ${{ inputs.fix_issue_repl }}
+  using: docker
+  image: Dockerfile
+  env:
+    GITHUB_WORKSPACE: ${{ github.workspace }}
+    INPUT_DIST_DIR:  ${{ inputs.dist_dir }}
+    INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
+    INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
+    INPUT_NAME:  ${{ inputs.name }}
+    INPUT_VERSION:  ${{ inputs.version }}
+    INPUT_VERSION_FILE:  ${{ inputs.version_file }}
+    INPUT_START_LINE:  ${{ inputs.start_line }}
+    INPUT_HEAD_LINE:  ${{ inputs.head_line }}
+    INPUT_FIX_ISSUE_REGEX:  ${{ inputs.fix_issue_regex }}
+    INPUT_FIX_ISSUE_REPL:  ${{ inputs.fix_issue_repl }}
