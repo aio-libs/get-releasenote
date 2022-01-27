@@ -75,7 +75,7 @@ jobs:
         pip install -e .
     - name: Run unittests
       run: |
-        pytest tests.py
+        pytest tests
         python -m coverage xml
     - name: Upload coverage
       uses: codecov/codecov-action@v1
