@@ -65,7 +65,9 @@ def find_version(root: Path, version_file: str, version: str) -> str:
     match = re.search(
         r"""
           __version__\s*=\s*"([^"]+)"|
-          __version__\s*=\s*'([^']+)'
+          __version__\s*=\s*'([^']+)'|
+          version\s*=\s*"([^"]+)"|
+          version\s*=\s*'([^']+)'
         """,
         txt,
         re.VERBOSE,
