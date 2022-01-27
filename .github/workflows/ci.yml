@@ -43,10 +43,9 @@ jobs:
 
   test:
     name: Test
-    needs: lint
     strategy:
       matrix:
-        pyver: [3.7, 3.8, 3.9]
+        pyver: ['3.7', '3.8', '3.9', '3.10']
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -83,3 +82,14 @@ jobs:
       with:
         file: ./coverage.xml
         fail_ci_if_error: false
+
+  check:  # This job does nothing and is only used for the branch protection
+    if: always()
+    name: "Tests check"
+    needs: [list, test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
