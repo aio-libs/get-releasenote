@@ -194,7 +194,6 @@ def main() -> int:
     print(f"::set-output name=prerelease::{str(is_prerelease).lower()}")
     is_devrelease = version.is_devrelease
     print(f"::set-output name=devrelease::{str(is_devrelease).lower()}")
-    print(f"::set-output name=gittags::{ctx.version},v{ctx.version}")
     (root / output_file).write_text(note)
     return 0
 
