@@ -66,8 +66,8 @@ def analyze_dists(root: Path, dist_dir: str) -> Optional[DistInfo]:
 
 
 def parse_changes(
-    *,
     ctx: Context,
+    *,
     changes_file: str,
     start_line: str,
     head_line: str,
