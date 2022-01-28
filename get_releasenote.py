@@ -67,15 +67,21 @@ def analyze_dists(root: Path, dist_dir: str) -> Optional[DistInfo]:
 
 def parse_changes(
     *,
-    changes: str,
-    version: str,
+    ctx: Context,
+    changes_file: str,
     start_line: str,
     head_line: str,
     fix_issue_regex: str,
     fix_issue_repl: str,
-    name: str,
+    name: Optional[str],
 ) -> str:
     check_fix_issue(fix_issue_regex, fix_issue_repl)
+    changes = ctx.read_file(changes_file)
+
+    if not name:
+        # take name from dict if not set
+        if ctx.dist is not None:
+            name = ctx.dist.name
 
     top, sep, msg = changes.partition(start_line)
     if not sep:
@@ -96,8 +102,8 @@ def parse_changes(
             f"Cannot find TOWNCRIER version head mark ({head_re.pattern!r})"
         )
     found_version = match.group("version")
-    if version != found_version:
-        raise ValueError(f"Version check mismatch: {version} != {found_version}")
+    if ctx.version != found_version:
+        raise ValueError(f"Version check mismatch: {ctx.version} != {found_version}")
 
     match2 = head_re.search(msg, match.end())
     if match2 is not None:
@@ -175,8 +181,8 @@ def main() -> int:
     version = parse_version(ctx.version)
     check_head(ctx.version, os.environ["INPUT_CHECK_REF"])
     note = parse_changes(
-        changes=ctx.read_file(os.environ["INPUT_CHANGES_FILE"]),
-        version=ctx.version,
+        ctx,
+        changes_file=os.environ["INPUT_CHANGES_FILE"],
         start_line=os.environ["INPUT_START_LINE"],
         head_line=os.environ["INPUT_HEAD_LINE"],
         fix_issue_regex=os.environ["INPUT_FIX_ISSUE_REGEX"],
