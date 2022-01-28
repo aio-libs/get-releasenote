@@ -164,7 +164,7 @@ def check_head(version: str, head: Optional[str]) -> None:
 
 
 def main() -> int:
-    root = Path(os.environ["GITHUB_WORKSPACE"])
+    root = Path.cwd()
     output_file = os.environ["INPUT_OUTPUT_FILE"]
     info = analyze_dists(root, os.environ["INPUT_DIST_DIR"])
     ctx = Context(root, info)

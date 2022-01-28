@@ -57,7 +57,6 @@ runs:
   using: docker
   image: Dockerfile
   env:
-    GITHUB_WORKSPACE: ${{ github.workspace }}
     INPUT_DIST_DIR:  ${{ inputs.dist_dir }}
     INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
     INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
