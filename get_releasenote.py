@@ -165,7 +165,6 @@ def check_head(version: str, head: Optional[str]) -> None:
 
 def main() -> int:
     root = Path.cwd()
-    output_file = os.environ["INPUT_OUTPUT_FILE"]
     info = analyze_dists(root, os.environ["INPUT_DIST_DIR"])
     ctx = Context(root, info)
     ctx.version = find_version(
@@ -175,25 +174,21 @@ def main() -> int:
     )
     version = parse_version(ctx.version)
     check_head(ctx.version, os.environ["INPUT_CHECK_REF"])
-    start_line = os.environ["INPUT_START_LINE"]
-    head_line = os.environ["INPUT_HEAD_LINE"]
-    fix_issue_regex = os.environ["INPUT_FIX_ISSUE_REGEX"]
-    fix_issue_repl = os.environ["INPUT_FIX_ISSUE_REPL"]
-    name = os.environ["INPUT_NAME"]
     note = parse_changes(
         changes=ctx.read_file(os.environ["INPUT_CHANGES_FILE"]),
         version=ctx.version,
-        start_line=start_line,
-        head_line=head_line,
-        fix_issue_regex=fix_issue_regex,
-        fix_issue_repl=fix_issue_repl,
-        name=name,
+        start_line=os.environ["INPUT_START_LINE"],
+        head_line=os.environ["INPUT_HEAD_LINE"],
+        fix_issue_regex=os.environ["INPUT_FIX_ISSUE_REGEX"],
+        fix_issue_repl=os.environ["INPUT_FIX_ISSUE_REPL"],
+        name=os.environ["INPUT_NAME"],
     )
     print(f"::set-output name=version::{ctx.version}")
     is_prerelease = version.is_prerelease
     print(f"::set-output name=prerelease::{str(is_prerelease).lower()}")
     is_devrelease = version.is_devrelease
     print(f"::set-output name=devrelease::{str(is_devrelease).lower()}")
+    output_file = os.environ["INPUT_OUTPUT_FILE"]
     (root / output_file).write_text(note)
     return 0
 
