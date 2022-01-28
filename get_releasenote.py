@@ -83,6 +83,26 @@ def parse_changes(
         if ctx.dist is not None:
             name = ctx.dist.name
 
+    return _parse_changes(
+        changes=changes,
+        version=ctx.version,
+        start_line=start_line,
+        head_line=head_line,
+        fix_issue_regex=fix_issue_regex,
+        fix_issue_repl=fix_issue_repl,
+    )
+
+
+def _parse_changes(
+    *,
+    changes: str,
+    version: str,
+    start_line: str,
+    head_line: str,
+    fix_issue_regex: str,
+    fix_issue_repl: str,
+    name: Optional[str],
+) -> str:
     top, sep, msg = changes.partition(start_line)
     if not sep:
         raise ValueError(f"Cannot find TOWNCRIER start mark ({start_line!r})")
@@ -102,8 +122,8 @@ def parse_changes(
             f"Cannot find TOWNCRIER version head mark ({head_re.pattern!r})"
         )
     found_version = match.group("version")
-    if ctx.version != found_version:
-        raise ValueError(f"Version check mismatch: {ctx.version} != {found_version}")
+    if version != found_version:
+        raise ValueError(f"Version check mismatch: {version} != {found_version}")
 
     match2 = head_re.search(msg, match.end())
     if match2 is not None:

@@ -6,10 +6,10 @@ import pytest
 from get_releasenote import (
     Context,
     DistInfo,
+    _parse_changes,
     analyze_dists,
     check_fix_issue,
     find_version,
-    parse_changes,
 )
 
 
@@ -116,7 +116,7 @@ def test_find_version_not_found(ctx: Context) -> None:
 
 def test_parse_no_start_line() -> None:
     with pytest.raises(ValueError, match="Cannot find TOWNCRIER start mark"):
-        parse_changes(
+        _parse_changes(
             changes="text",
             version="1.2.3",
             start_line=START_LINE,
@@ -135,7 +135,7 @@ def test_parse_no_head_line() -> None:
     """
     )
     with pytest.raises(ValueError, match="Cannot find TOWNCRIER version head mark"):
-        parse_changes(
+        _parse_changes(
             changes=CHANGES,
             version="1.2.3",
             start_line=START_LINE,
@@ -157,7 +157,7 @@ def test_parse_version_mismatch() -> None:
     """
     )
     with pytest.raises(ValueError, match="Version check mismatch"):
-        parse_changes(
+        _parse_changes(
             changes=CHANGES,
             version="1.2.3",
             start_line=START_LINE,
@@ -186,7 +186,7 @@ def test_parse_single_changes() -> None:
 
     """
     )
-    ret = parse_changes(
+    ret = _parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -231,7 +231,7 @@ def test_parse_multi_changes() -> None:
       --------
     """
     )
-    ret = parse_changes(
+    ret = _parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -266,7 +266,7 @@ def test_parse_fix_issues() -> None:
       - Feature 1 `#4603 <https://github.com/aio-libs/aiohttp/issues/4603>`_
     """
     )
-    ret = parse_changes(
+    ret = _parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
@@ -302,7 +302,7 @@ def test_parse_with_name() -> None:
 
     """
     )
-    ret = parse_changes(
+    ret = _parse_changes(
         changes=CHANGES,
         version="1.2.3",
         start_line=START_LINE,
