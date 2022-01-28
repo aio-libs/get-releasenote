@@ -85,6 +85,7 @@ def parse_changes(
 
     return _parse_changes(
         changes=changes,
+        changes_file=changes_file,
         version=ctx.version,
         start_line=start_line,
         head_line=head_line,
@@ -96,6 +97,7 @@ def parse_changes(
 def _parse_changes(
     *,
     changes: str,
+    changes_file: str,
     version: str,
     start_line: str,
     head_line: str,
@@ -105,7 +107,10 @@ def _parse_changes(
 ) -> str:
     top, sep, msg = changes.partition(start_line)
     if not sep:
-        raise ValueError(f"Cannot find TOWNCRIER start mark ({start_line!r})")
+        raise ValueError(
+            f"Cannot find TOWNCRIER start mark ({start_line!r}) "
+            "in file '{changes_file}'"
+        )
 
     msg = msg.strip()
     head_re = re.compile(
@@ -119,11 +124,11 @@ def _parse_changes(
     match = head_re.match(msg)
     if match is None:
         raise ValueError(
-            f"Cannot find TOWNCRIER version head mark ({head_re.pattern!r})"
+            f"Cannot find TOWNCRIER version head mark ({head_re.pattern!r}) "
+            f"in file '{changes_file}'"
         )
     found_version = match.group("version")
-    if version != found_version:
-        raise ValueError(f"Version check mismatch: {version} != {found_version}")
+    check_changes_version(version, found_version, changes_file)
 
     match2 = head_re.search(msg, match.end())
     if match2 is not None:
@@ -136,6 +141,29 @@ def _parse_changes(
     if fix_issue_regex:
         msg = re.sub(fix_issue_regex, fix_issue_repl, msg)
     return msg.strip()
+
+
+def check_changes_version(
+    declared_version: str, found_version: str, changes_file: str
+) -> None:
+    if declared_version == found_version:
+        return
+    dver = parse_version(declared_version)
+    fver = parse_version(found_version)
+
+    if dver < fver:
+        raise ValueError(
+            f"The distribution version {dver} is older than "
+            f"{fver} (from '{changes_file}').\n"
+            "Hint: push git tag with the latest version."
+        )
+
+    else:
+        raise ValueError(
+            f"The distribution version {dver} is younger than "
+            f"{fver} (from '{changes_file}').\n"
+            "Hint: run 'towncrier' again."
+        )
 
 
 VERSION_RE = re.compile(
