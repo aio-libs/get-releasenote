@@ -2,13 +2,7 @@ import pathlib
 
 import pytest
 
-from get_releasenote import (
-    Context,
-    DistInfo,
-    analyze_dists,
-    check_fix_issue,
-    find_version,
-)
+from get_releasenote import Context, DistInfo, analyze_dists, find_version
 
 
 @pytest.fixture
@@ -16,33 +10,11 @@ def root() -> pathlib.Path:
     return pathlib.Path(__file__).parent
 
 
-#################
-
-
-def test_check_fix_issue_ok1() -> None:
-    assert check_fix_issue("s1", "s2") is None
-
-
-def test_check_fix_issue_ok2() -> None:
-    assert check_fix_issue("", "") is None
-
-
-def test_check_fix_issue_fail1() -> None:
-    with pytest.raises(ValueError):
-        assert check_fix_issue("", "s2")
-
-
-def test_check_fix_issue_fail2() -> None:
-    with pytest.raises(ValueError):
-        assert check_fix_issue("s1", "")
-
-
-##################
-
-
 @pytest.fixture
 def dist(root: pathlib.Path) -> DistInfo:
-    return analyze_dists(root, "dist_ok")
+    ret = analyze_dists(root, "dist_ok")
+    assert ret is not None
+    return ret
 
 
 @pytest.fixture

@@ -62,6 +62,10 @@ def analyze_dists(root: Path, dist_dir: str) -> Optional[DistInfo]:
             assert version == ver, f"{ver} != {version} for {dist}"
         else:
             version = ver
+
+    assert version is not None
+    assert name is not None
+    assert tarball_path is not None
     return DistInfo(str(version), name, tarball_path)
 
 
@@ -91,6 +95,7 @@ def parse_changes(
         head_line=head_line,
         fix_issue_regex=fix_issue_regex,
         fix_issue_repl=fix_issue_repl,
+        name=name,
     )
 
 
