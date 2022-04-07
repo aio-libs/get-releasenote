@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Setup Python 3.9
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3.1.1
       with:
         python-version: 3.9
     - name: Cache PyPI
@@ -56,7 +56,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Setup Python ${{ matrix.pyver }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3.1.1
       with:
         python-version: ${{ matrix.pyver }}
     - name: Get pip cache dir
