@@ -58,6 +58,7 @@ runs:
   image: Dockerfile
   env:
     INPUT_DIST_DIR:  ${{ inputs.dist_dir }}
+    INPUT_CHECK_REF: ${{ inputs.check_ref }}
     INPUT_CHANGES_FILE:  ${{ inputs.changes_file }}
     INPUT_OUTPUT_FILE:  ${{ inputs.output_file }}
     INPUT_NAME:  ${{ inputs.name }}
