@@ -24,16 +24,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Setup Python 3.9
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.9
-    - name: Cache PyPI
-      uses: actions/cache@v2
-      with:
-        key: pip-lint-${{ hashFiles('requirements.txt') }}
-        path: ~/.cache/pip
-        restore-keys: |
-            pip-lint-
+        cache: 'pip'
+        cache-dependency-path: 'requirements.txt'
     - name: Install dependencies
       uses: py-actions/py-dependency-install@v3
       with:
@@ -56,20 +51,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Setup Python ${{ matrix.pyver }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.pyver }}
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"    # - name: Cache
-    - name: Cache PyPI
-      uses: actions/cache@v2
-      with:
-        key: pip-ci-${{ matrix.pyver }}-${{ hashFiles('requirements.txt') }}
-        path: ${{ steps.pip-cache.outputs.dir }}
-        restore-keys: |
-            pip-ci-${{ matrix.pyver }}-
+        cache: 'pip'
+        cache-dependency-path: 'requirements.txt'
     - name: Install dependencies
       uses: py-actions/py-dependency-install@v3
       with:
