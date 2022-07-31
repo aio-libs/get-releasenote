@@ -174,8 +174,9 @@ def check_changes_version(
 VERSION_RE = re.compile(
     "^{version} *= *{spec}".format(
         version="(?:__version__|version)",
-        spec=r"""(['"])([^\1]+)\1""",
-    )
+        spec=r"""(["'])((?:(?!\1).)*)\1""",
+    ),
+    re.MULTILINE,
 )
 
 
@@ -193,8 +194,7 @@ def find_version(ctx: Context, version_file: str, version: str) -> str:
             )
         return version
     txt = ctx.read_file(version_file)
-    match = VERSION_RE.match(txt)
-    if match:
+    if match := VERSION_RE.search(txt):
         ret = match.group(2)
         if ctx.dist and ret != ctx.dist.version:
             raise ValueError(
@@ -202,8 +202,7 @@ def find_version(ctx: Context, version_file: str, version: str) -> str:
                 f"mismatches with autodetected {ctx.dist.version}"
             )
         return ret
-    else:
-        raise ValueError(f"Unable to determine version in file '{version_file}'")
+    raise ValueError(f"Unable to determine version in file '{version_file}'")
 
 
 def check_fix_issue(fix_issue_regex: str, fix_issue_repl: str) -> None:
