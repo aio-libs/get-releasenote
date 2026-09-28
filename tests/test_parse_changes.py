@@ -22,12 +22,10 @@ def test_parse_no_start_line() -> None:
 
 
 def test_parse_no_head_line() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       {START_LINE}
       NO-VERSION
-    """
-    )
+    """)
     with pytest.raises(ValueError, match="Cannot find TOWNCRIER version head mark"):
         _parse_changes(
             changes=CHANGES,
@@ -42,15 +40,13 @@ def test_parse_no_head_line() -> None:
 
 
 def test_parse_version_older() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       {START_LINE}
 
       1.2.4 (2020-12-16)
       ==================
 
-    """
-    )
+    """)
     with pytest.raises(
         ValueError, match="The distribution version 1.2.3 is older than 1.2.4"
     ):
@@ -67,15 +63,13 @@ def test_parse_version_older() -> None:
 
 
 def test_parse_version_younger() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       {START_LINE}
 
       1.2.4 (2020-12-16)
       ==================
 
-    """
-    )
+    """)
     with pytest.raises(
         ValueError, match="The distribution version 1.2.5 is younger than 1.2.4"
     ):
@@ -92,8 +86,7 @@ def test_parse_version_younger() -> None:
 
 
 def test_parse_single_changes() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       Header
       {START_LINE}
 
@@ -107,8 +100,7 @@ def test_parse_single_changes() -> None:
 
       - Feature 2 (#1025)
 
-    """
-    )
+    """)
     ret = _parse_changes(
         changes=CHANGES,
         changes_file="CHANGES.rst",
@@ -119,20 +111,17 @@ def test_parse_single_changes() -> None:
         fix_issue_repl="",
         name="name",
     )
-    assert ret == dedent(
-        """\
+    assert ret == dedent("""\
       Features
       --------
 
       - Feature 1 (#1024)
 
-      - Feature 2 (#1025)"""
-    )
+      - Feature 2 (#1025)""")
 
 
 def test_parse_multi_changes() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       Header
       {START_LINE}
 
@@ -153,8 +142,7 @@ def test_parse_multi_changes() -> None:
 
       Bugfixes
       --------
-    """
-    )
+    """)
     ret = _parse_changes(
         changes=CHANGES,
         changes_file="CHANGES.rst",
@@ -165,20 +153,17 @@ def test_parse_multi_changes() -> None:
         fix_issue_repl="",
         name="name",
     )
-    assert ret == dedent(
-        """\
+    assert ret == dedent("""\
       Features
       --------
 
       - Feature 1 (#1024)
 
-      - Feature 2 (#1025)"""
-    )
+      - Feature 2 (#1025)""")
 
 
 def test_parse_fix_issues() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       Header
       {START_LINE}
 
@@ -189,8 +174,7 @@ def test_parse_fix_issues() -> None:
       --------
 
       - Feature 1 `#4603 <https://github.com/aio-libs/aiohttp/issues/4603>`_
-    """
-    )
+    """)
     ret = _parse_changes(
         changes=CHANGES,
         changes_file="CHANGES.rst",
@@ -203,18 +187,15 @@ def test_parse_fix_issues() -> None:
         fix_issue_repl=" (#\\1)",
         name="name",
     )
-    assert ret == dedent(
-        """\
+    assert ret == dedent("""\
       Features
       --------
 
-      - Feature 1 (#4603)"""
-    )
+      - Feature 1 (#4603)""")
 
 
 def test_parse_with_name() -> None:
-    CHANGES = dedent(
-        f"""\
+    CHANGES = dedent(f"""\
       Header
       {START_LINE}
 
@@ -226,8 +207,7 @@ def test_parse_with_name() -> None:
 
       - Feature 1 (#1024)
 
-    """
-    )
+    """)
     ret = _parse_changes(
         changes=CHANGES,
         changes_file="CHANGES.rst",
@@ -238,10 +218,8 @@ def test_parse_with_name() -> None:
         fix_issue_repl="",
         name="name",
     )
-    assert ret == dedent(
-        """\
+    assert ret == dedent("""\
       Features
       --------
 
-      - Feature 1 (#1024)"""
-    )
+      - Feature 1 (#1024)""")
