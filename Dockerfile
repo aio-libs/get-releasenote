@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.15-slim
 
 COPY get_releasenote.py /get_releasenote.py
 RUN pip install packaging==21.3
